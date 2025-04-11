@@ -1,5 +1,6 @@
 import 'package:doctor_app/homepage.dart';
 import 'package:doctor_app/login.dart';
+import 'package:doctor_app/verify.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,14 @@ class _WrapperState extends State<Wrapper> {
           builder: (context , snapshot){
             if(snapshot.hasData)
               {
-                return Homepage();
+                if(snapshot.data!.emailVerified)
+                  {
+                    return Homepage();
+                  }
+                else
+                  {
+                    return Verify();
+                  }
               }
             else
               {
