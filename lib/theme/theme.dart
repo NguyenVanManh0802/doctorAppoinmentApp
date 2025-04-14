@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 const primaryColor = Color(0xFF007BFF); // Contoh warna biru
+
+
 const primaryColorLight = Color(0xFF5CADFF);
 const primaryColorDark = Color(0xFF0052B3);
 const accentColor = Color(0xFF4CAF50); // Contoh warna hijau aksen

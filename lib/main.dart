@@ -1,9 +1,11 @@
+import 'package:doctor_app/auth/DoctorDetailPage.dart';
 import 'package:doctor_app/theme/theme.dart';
 import 'package:doctor_app/welcom.dart';
 import 'package:doctor_app/auth/wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'auth/homepage.dart';
 import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
