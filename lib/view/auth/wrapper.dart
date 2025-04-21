@@ -1,6 +1,6 @@
-import 'package:doctor_app/auth/homepage.dart';
-import 'package:doctor_app/auth/login.dart';
-import 'package:doctor_app/auth/verify.dart';
+import 'package:doctor_app/view/patienceScreen/homepage.dart';
+import 'package:doctor_app/view/auth/login.dart';
+import 'package:doctor_app/view/auth/verify.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';

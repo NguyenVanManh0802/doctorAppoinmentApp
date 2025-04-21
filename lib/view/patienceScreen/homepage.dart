@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'DoctorDetailPage.dart';
-import 'login.dart';
+import '../auth/login.dart';
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
 

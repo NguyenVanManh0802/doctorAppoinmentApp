@@ -1,51 +1,68 @@
-import 'package:doctor_app/auth/homepage.dart';
-import 'package:doctor_app/auth/signup.dart';
-import 'package:doctor_app/theme/theme.dart'; // Giả sử bạn có file colors.dart
+import 'package:doctor_app/view/auth/wrapper.dart';
+import 'package:doctor_app/theme/theme.dart'; // Assuming you have a theme file
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'forgot.dart';
-
-class Login extends StatefulWidget {
-  const Login({super.key});
+class Signup extends StatefulWidget {
+  const Signup({super.key});
 
   @override
-  State<Login> createState() => _LoginState();
+  State<Signup> createState() => _SignupState();
 }
 
-class _LoginState extends State<Login> {
-  TextEditingController email = TextEditingController();
-  TextEditingController password = TextEditingController();
-  String _selectedRole = 'patient'; // Giá trị mặc định
-  bool isLoading = false;
-  bool _obscureText = true; // Để ẩn/hiện mật khẩu
+class _SignupState extends State<Signup> {
+  TextEditingController fullNameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
+  String _selectedRole = 'patient'; // Default role
+  bool _obscureText = true;
+  bool _isLoading = false;
 
-  signIn() async {
-    setState(() {
-      isLoading = true;
-    });
-    try {
-      // Ở đây bạn có thể gửi thêm _selectedRole lên backend để xử lý đăng nhập khác nhau
-      await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email.text, password: password.text);
-      Get.snackbar("Success", "Logged in as $_selectedRole", backgroundColor: Colors.greenAccent, colorText: Colors.white);
-      Get.offAll(Homepage());
-      // TODO: Chuyển hướng người dùng dựa trên vai trò (_selectedRole)
-    } on FirebaseAuthException catch (e) {
-      Get.snackbar("Error", e.code, backgroundColor: Colors.redAccent, colorText: Colors.white);
-    } catch (e) {
-      Get.snackbar("Error", e.toString(), backgroundColor: Colors.redAccent, colorText: Colors.white);
+  signup() async {
+    if (fullNameController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        phoneController.text.isEmpty) {
+      Get.snackbar("Error", "Please fill in all fields",
+          backgroundColor: Colors.orangeAccent, colorText: Colors.white);
+      return;
     }
+
     setState(() {
-      isLoading = false;
+      _isLoading = true;
     });
+
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim());
+
+      if (userCredential.user != null) {
+        // lưu trữ
+        // thêm thông tin người dùng
+        // trong database FirebaseStore theo Uid
+        Get.offAll(const Wrapper());
+      }
+    } on FirebaseAuthException catch (e) {
+      Get.snackbar("Error", e.code,
+          backgroundColor: Colors.redAccent, colorText: Colors.white);
+    } catch (e) {
+      Get.snackbar("Error", e.toString(),
+          backgroundColor: Colors.redAccent, colorText: Colors.white);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ?  Center(child: CircularProgressIndicator(color: primaryColor))
+    return _isLoading
+        ? const Center(child: CircularProgressIndicator(color: primaryColor))
         : Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -74,7 +91,7 @@ class _LoginState extends State<Login> {
             children: <Widget>[
               const SizedBox(height: 80),
               const Text(
-                "Welcome Back!",
+                "Create Account",
                 style: TextStyle(
                   fontSize: 32.0,
                   fontWeight: FontWeight.bold,
@@ -83,13 +100,16 @@ class _LoginState extends State<Login> {
               ),
               const SizedBox(height: 20.0),
               const Text(
-                "Login to your account",
+                "Sign up to join our community",
                 style: TextStyle(fontSize: 18.0, color: Colors.white70),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40.0),
-              DropdownButtonFormField<String>(
+              TextField(
+                controller: fullNameController,
+                style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  labelText: 'Login as',
+                  labelText: 'Full Name',
                   labelStyle: const TextStyle(color: Colors.white70),
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.1),
@@ -99,25 +119,10 @@ class _LoginState extends State<Login> {
                   ),
                   prefixIcon: const Icon(Icons.person_outline, color: Colors.white70),
                 ),
-                dropdownColor: primaryColorDark,
-                style: const TextStyle(color: Colors.white),
-                value: _selectedRole,
-                items: <String>['admin', 'patient', 'doctor']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedRole = newValue!;
-                  });
-                },
               ),
               const SizedBox(height: 20.0),
               TextField(
-                controller: email,
+                controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
@@ -134,7 +139,7 @@ class _LoginState extends State<Login> {
               ),
               const SizedBox(height: 20.0),
               TextField(
-                controller: password,
+                controller: passwordController,
                 obscureText: _obscureText,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
@@ -160,11 +165,57 @@ class _LoginState extends State<Login> {
                   ),
                 ),
               ),
+              const SizedBox(height: 20.0),
+              TextField(
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.1),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15.0),
+                    borderSide: BorderSide.none,
+                  ),
+                  prefixIcon: const Icon(Icons.phone_outlined, color: Colors.white70),
+                ),
+              ),
+              const SizedBox(height: 20.0),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Registering as',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.1),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15.0),
+                    borderSide: BorderSide.none,
+                  ),
+                  prefixIcon: const Icon(Icons.supervisor_account_outlined, color: Colors.white70),
+                ),
+                dropdownColor: primaryColorDark,
+                style: const TextStyle(color: Colors.white),
+                value: _selectedRole,
+                items: <String>['admin', 'doctor', 'patient']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedRole = newValue!;
+                  });
+                },
+              ),
               const SizedBox(height: 30.0),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: signIn,
+                  onPressed: signup,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: accentColor,
                     foregroundColor: Colors.white,
@@ -175,33 +226,23 @@ class _LoginState extends State<Login> {
                     elevation: 5,
                   ),
                   child: const Text(
-                    "Login",
+                    "Sign Up",
                     style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
               const SizedBox(height: 20.0),
-              TextButton(
-                onPressed: () => Get.to(const forgot()),
-                child: const Text(
-                  "Forgot password?",
-                  style: TextStyle(color: Colors.white70),
-                ),
-              ),
-              const SizedBox(height: 40.0),
-              const Divider(color: Colors.white30),
-              const SizedBox(height: 20.0),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   const Text(
-                    "Don't have an account?",
+                    "Already have an account?",
                     style: TextStyle(color: Colors.white70),
                   ),
                   TextButton(
-                    onPressed: () => Get.to(const Signup()),
+                    onPressed: () => Get.back(), // quay lại màn hình trước đó (Login)
                     child: const Text(
-                      "Register now",
+                      "Login",
                       style: TextStyle(color: accentColor, fontWeight: FontWeight.bold),
                     ),
                   ),
