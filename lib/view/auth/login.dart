@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../controller/authController.dart';
 import 'forgot.dart';
 
 class Login extends StatefulWidget {
@@ -15,28 +16,25 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-
+  final AuthController _authController = Get.put(AuthController());
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   String _selectedRole = 'patient'; // Giá trị mặc định
   bool isLoading = false;
   bool _obscureText = true; // Để ẩn/hiện mật khẩu
 
-  signIn() async {
+  Future <void>signIn() async {
     setState(() {
       isLoading = true;
     });
     try {
-      // Ở đây bạn có thể gửi thêm _selectedRole lên backend để xử lý đăng nhập khác nhau
-      await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email.text, password: password.text);
-      Get.snackbar("Success", "Logged in as $_selectedRole", backgroundColor: Colors.greenAccent, colorText: Colors.white);
-      Get.offAll(Homepage());
-      // TODO: Chuyển hướng người dùng dựa trên vai trò (_selectedRole)
-    } on FirebaseAuthException catch (e) {
-      Get.snackbar("Error", e.code, backgroundColor: Colors.redAccent, colorText: Colors.white);
+      final String? uid = await _authController.signInWithEmailAndPassword(
+        email: email.text.trim(),
+        password: password.text.trim(),
+      );
     } catch (e) {
-      Get.snackbar("Error", e.toString(), backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar("Error", e.toString(),
+          backgroundColor: Colors.redAccent, colorText: Colors.white);
     }
     setState(() {
       isLoading = false;
@@ -87,35 +85,7 @@ class _LoginState extends State<Login> {
                 "Login to your account",
                 style: TextStyle(fontSize: 18.0, color: Colors.white70),
               ),
-              const SizedBox(height: 40.0),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Login as',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.1),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                    borderSide: BorderSide.none,
-                  ),
-                  prefixIcon: const Icon(Icons.person_outline, color: Colors.white70),
-                ),
-                dropdownColor: primaryColorDark,
-                style: const TextStyle(color: Colors.white),
-                value: _selectedRole,
-                items: <String>['admin', 'patient', 'doctor']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedRole = newValue!;
-                  });
-                },
-              ),
+
               const SizedBox(height: 20.0),
               TextField(
                 controller: email,

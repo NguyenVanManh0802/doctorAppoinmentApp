@@ -6,7 +6,7 @@ import 'HomeDoctor.dart';
 import 'doctorScreen.dart';
 
 class DetailPatientEnroll extends StatefulWidget {
-  const DetailPatientEnroll({super.key});
+  const DetailPatientEnroll({super.key, required String patientId});
 
   @override
   State<DetailPatientEnroll> createState() => _DetailPatientEnrollState();
@@ -180,9 +180,8 @@ class _DetailPatientEnrollState extends State<DetailPatientEnroll> {
                   ),
                   const SizedBox(height: 15),
                   _buildInfoRow('Name', patientName),
+                  _buildInfoRow('Phone Number', "09232132"),
                   const SizedBox(height: 10),
-                  _buildInfoRow('Problem', patientProblem),
-                  const SizedBox(height: 30),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [

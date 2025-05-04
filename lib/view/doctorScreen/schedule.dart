@@ -118,7 +118,6 @@ class _ScheduleState extends State<Schedule> {
       ),
     );
   }
-
   // Widget hiển thị icon trạng thái khám
   Widget _buildStatusIcon(bool isCompleted) {
     return Container(

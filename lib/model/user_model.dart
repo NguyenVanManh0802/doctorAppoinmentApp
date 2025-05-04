@@ -4,6 +4,7 @@ class User {
   final String email;
   final String password;
   final String phoneNumber;
+  final String SpecialtyId;
   final String role; // Ví dụ: 'patient', 'doctor', 'admin'
   final DateTime? createdAt;
 
@@ -14,6 +15,7 @@ class User {
     required this.password,
     required this.phoneNumber,
     required this.role,
+    required this.SpecialtyId,
     this.createdAt,
   });
 
@@ -26,6 +28,7 @@ class User {
       password: data['password'] ?? '',
       phoneNumber: data['phoneNumber'] ?? '',
       role: data['role'] ?? 'patient', // Giá trị mặc định nếu không có
+      SpecialtyId: data['SpecialtyId'] ?? '',
       createdAt: data['createdAt'] != null ? (data['createdAt'] as dynamic).toDate() : null,
     );
   }
@@ -38,6 +41,7 @@ class User {
       'phoneNumber': phoneNumber,
       'password':password,
       'role': role,
+      'SpecialtyId': SpecialtyId,
       'createdAt': createdAt,
     };
   }

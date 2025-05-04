@@ -1,20 +1,64 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../model/user_model.dart';
- // Import model Patient của bạn
 
-class authRepository {
+
+class AuthRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final CollectionReference _usersCollection =
-  FirebaseFirestore.instance.collection('users'); // Tên collection bạn muốn sử dụng
+  static const String usersCollection = 'users';
 
-  Future<void> registerUser(User user) async {
+  Future<void> saveUserToFirestore(String uid, Map<String, dynamic> userData) async {
     try {
-      // Thêm dữ liệu người dùng vào collection 'users' với ID tự động
-      await _usersCollection.add(user.toMap());
-      print('Người dùng đã được đăng ký thành công!');
+      await _firestore.collection(usersCollection).doc(uid).set(userData);
+      print('User data saved to Firestore for UID: $uid');
     } catch (e) {
-      print('Lỗi đăng ký người dùng: $e');
-      rethrow; // Re-throw lỗi để Controller có thể xử lý
+      print('Error saving user data to Firestore: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserFromFirestore(String uid) async {
+    try {
+      final DocumentSnapshot<Map<String, dynamic>> snapshot =
+      await _firestore.collection(usersCollection).doc(uid).get();
+      if (snapshot.exists && snapshot.data() != null) {
+        return snapshot.data()!;
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching user data from Firestore: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<User>> getDoctorsBySpecialtyFromFirestore(String specialtyId) async {
+    try {
+      final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+          .collection(usersCollection)
+          .where('role', isEqualTo: 'doctor')
+          .where('SpecialtyId', isEqualTo: specialtyId)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        return User.fromMap(doc.data(), doc.id);
+      }).toList();
+    } catch (e) {
+      print('Error fetching doctors by specialty from Firestore: $e');
+      rethrow;
+    }
+  }
+
+  Future<User?> getUserByIdFromFirestore(String uid) async {
+    try {
+      final DocumentSnapshot<Map<String, dynamic>> snapshot =
+      await _firestore.collection(usersCollection).doc(uid).get();
+      if (snapshot.exists && snapshot.data() != null) {
+        return User.fromMap(snapshot.data()!, snapshot.id);
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching user data from Firestore: $e');
+      rethrow;
     }
   }
 }
