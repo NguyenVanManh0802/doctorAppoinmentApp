@@ -22,7 +22,8 @@ class AuthController extends GetxController {
 
   final firebase_auth.User? user = firebase_auth.FirebaseAuth.instance.currentUser;
   final pendingAppointments = <Map<String, dynamic>>[].obs;
-
+  final getPatientBySchedule=<Map<String, dynamic>>[].obs;
+  final appointmentDetails = Rxn<Map<String, dynamic>>(); // Thêm biến này
 
   @override
   // void onInit() {
@@ -237,6 +238,59 @@ class AuthController extends GetxController {
       pendingAppointments.assignAll(appointments);
   }
 
+  //lấy list patient dưa theo state đã là true
+  Future<void> fetchScheduleAppointments() async {
+
+    final appointments = await _appointmentService.getPatientHasStateIsTrue(user?.uid);
+    getPatientBySchedule.assignAll(appointments);
+  }
+
+  //lấy theo appointmentId
+  Future<void> fetchAppointmentDetails(String appointmentId) async {
+    appointmentDetails.value = await _appointmentService.getAppointmentDetails(appointmentId);
+  }
+
+  // Hàm chấp nhận lịch hẹn, gọi service để cập nhật trạng thái
+  Future<void> acceptAppointment(String appointmentId) async {
+    try {
+      await _appointmentService.updateAppointmentState(appointmentId);
+      Get.snackbar(
+        "Success",
+        "Appointment accepted successfully!",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        "Failed to accept appointment: $e",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      rethrow; // Để thông báo lỗi hiển thị
+    }
+  }
+
+  // Hàm từ chối lịch hẹn, gọi service để xóa
+  Future<void> deleteAppointment(String appointmentId) async {
+    try {
+      await _appointmentService.deleteAppointment(appointmentId);
+      Get.snackbar(
+        "Success",
+        "Appointment rejected successfully!",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        "Failed to reject appointment: $e",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      rethrow; // Để thông báo lỗi hiển thị
+    }
+  }
 
 
 }

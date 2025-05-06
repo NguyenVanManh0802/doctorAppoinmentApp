@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/authController.dart';
 import '../../model/user_model.dart';
+import '../auth/login.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import for DocumentSnapshot
 
 class Homedoctor extends StatefulWidget {
   const Homedoctor({super.key});
@@ -20,6 +22,59 @@ class _HomedoctorState extends State<Homedoctor> {
   void initState() {
     super.initState();
     _authController.fetchPendingAppointments();
+  }
+  signout() async {
+    await firebase_user.FirebaseAuth.instance.signOut();
+    Get.offAll(Login());
+  }
+  void _showPopupMenu(BuildContext context, TapDownDetails details) async {
+    final RenderBox button = context.findRenderObject() as RenderBox;
+    final Offset buttonPosition = button.localToGlobal(Offset.zero);
+
+    try {
+      await showMenu(
+        context: context,
+        position: RelativeRect.fromLTRB(
+          details.globalPosition.dx,
+          details.globalPosition.dy,
+          details.globalPosition.dx,
+          details.globalPosition.dy,
+        ).shift(const Offset(0, -5)),
+        items: [
+          const PopupMenuItem<String>(
+            value: 'change_info',
+            child: Text('Đổi thông tin'),
+          ),
+          const PopupMenuItem<String>(
+            value: 'change_password',
+            child: Text('Đổi mật khẩu'),
+          ),
+          PopupMenuItem<String>(
+            value: 'sign_out',
+            child: Text('Đăng xuất'),
+            onTap: () {
+              Future.delayed(Duration.zero, () {
+                signout();
+              });
+            },
+          ),
+          const PopupMenuItem<String>(
+            value: 'delete_account',
+            child: Text('Xóa tài khoản'),
+          ),
+        ],
+      ).then((value) {
+        if (value == 'change_info') {
+          print('Đổi thông tin được chọn');
+        } else if (value == 'change_password') {
+          print('Đổi mật khẩu được chọn');
+        } else if (value == 'delete_account') {
+          print('Xóa tài khoản được chọn');
+        }
+      });
+    } catch (e) {
+      print("Lỗi khi hiển thị menu: $e");
+    }
   }
 
   @override
@@ -45,6 +100,9 @@ class _HomedoctorState extends State<Homedoctor> {
                   ),
                 )),
             GestureDetector(
+              onTapDown: (TapDownDetails details) {
+                _showPopupMenu(context, details);
+              },
               child: Container(
                 margin: const EdgeInsets.only(right: 10),
                 child: Image.asset("assets/images/profile_img.png"),
@@ -167,21 +225,23 @@ class _HomedoctorState extends State<Homedoctor> {
                       return ListView.builder(
                         itemCount: _authController.pendingAppointments.length,
                         itemBuilder: (context, index) {
+                          // Get the appointment object.
                           final appointment =
                           _authController.pendingAppointments[index];
+                          print('Toàn bộ đối tượng appointment: $appointment');
                           final patientId =
                               appointment['patientId'] ??
                                   '12345'; // Provide a default value
-                          //final User? patient =  _authController.fetchUserByUid(patientId) as User?; //changed
-                          final Future<User?> patientFuture =
-                          _authController.fetchUserByUid(
-                              patientId); // Fetch user details
 
+                          final Future<User?> patientFuture =
+                          _authController.fetchUserByUid(patientId);
                           final appointmentTime =
                               appointment['appointmentTime'] ?? 'N/A';
+                          // Assuming _authController.pendingAppointments is a List<DocumentSnapshot>
+                          String appointmentId = appointment['appointmentId'] ?? '';
+                          print('Appointment ID: $appointmentId');
                           return FutureBuilder<User?>(
-                            future:
-                            patientFuture, // Use the future here to get user data.
+                            future: patientFuture, // Use the future here to get user data.
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
@@ -198,14 +258,17 @@ class _HomedoctorState extends State<Homedoctor> {
                                   patientName,
                                   "Thời gian: $appointmentTime",
                                   patientId,
+                                  appointmentId, // Pass the appointmentId
                                 );
                               } else {
+
                                 //if snapshot.data is null or no data.
                                 return demoPatientCard(
                                   "assets/images/profile_img.png",
                                   "Unknown User", // show unknown user
                                   "Thời gian: $appointmentTime",
                                   patientId,
+                                  appointmentId, // Pass the appointmentId
                                 );
                               }
                             },
@@ -219,18 +282,16 @@ class _HomedoctorState extends State<Homedoctor> {
         ));
   }
 
-  Widget demoPatientCard(String img, String name, String time, String? patientId) {
+  Widget demoPatientCard(String img, String name, String time, String? patientId,
+      String appointmentId) { // Add appointmentId parameter
     return GestureDetector(
       onTap: () {
-        if (patientId != null) {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => DetailPatientEnroll(patientId: patientId)));
-        } else {
-          // Handle case where patientId is not available
-          print("Patient ID is null, cannot navigate to details.");
-        }
+                  builder: (context) => DetailPatientEnroll(
+                      appointmentId:
+                      appointmentId,))); // Pass appointmentId to the detail page
       },
       child: Container(
         height: 90,
@@ -292,3 +353,4 @@ class _HomedoctorState extends State<Homedoctor> {
     );
   }
 }
+
