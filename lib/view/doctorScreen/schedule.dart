@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../controller/authController.dart';
 import '../../model/user_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Schedule extends StatefulWidget {
   const Schedule({super.key});
@@ -56,55 +55,63 @@ class _ScheduleState extends State<Schedule> {
                     final patientName = snapshot.data!.fullName;
                     String appointmentTime = appointment['appointmentTime'];
                     String appointmentDate = appointment['appointmentDate'];
-                    print ("medical_examination ${appointment['medical_examination']}");
-                    // Sử dụng toán tử ?? để cung cấp giá trị mặc định là false nếu giá trị null
                     bool isCompleted = appointment['medical_examination'] ?? false;
+                    String appointmentId = appointment['appointmentId'];
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    patientName,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
+                    return InkWell(
+                      onTap: isCompleted
+                          ? null
+                          : () async {
+                        // Cập nhật trạng thái medical_examination khi bác sĩ nhấn vào
+                        await _authController.markAppointmentAsExamined(appointmentId);
+                        // Tải lại danh sách lịch hẹn để cập nhật UI
+                        await _authController.fetchScheduleAppointments();
+                      },
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      patientName,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Date: $appointmentDate',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.grey[600],
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Ngày: $appointmentDate',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Time: $appointmentTime',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.grey[600],
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Giờ: $appointmentTime',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
-                                  ),
-
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            _buildStatusIcon(isCompleted),
-                          ],
+                              const SizedBox(width: 16),
+                              _buildStatusIcon(isCompleted),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -135,4 +142,3 @@ class _ScheduleState extends State<Schedule> {
     );
   }
 }
-

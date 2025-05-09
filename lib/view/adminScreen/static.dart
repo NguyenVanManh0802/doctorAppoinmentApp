@@ -1,4 +1,7 @@
+import 'package:doctor_app/controller/authController.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class Statics extends StatefulWidget {
@@ -12,6 +15,25 @@ class _StaticsState extends State<Statics> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  final AuthController _authController = Get.find();
+  final appointmentsForSelectedDate = <Map<String, dynamic>>[].obs;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = DateTime.now(); // Initialize with today's date
+    _loadAppointmentsForSelectedDate(_selectedDay!);
+  }
+
+  Future<void> _loadAppointmentsForSelectedDate(DateTime date) async {
+    try {
+      await _authController.fetchAppointmentsForSelectedDate(date );
+      appointmentsForSelectedDate.assignAll( _authController.appointmentsByDate);
+    } catch (e) {
+      print('Lỗi khi tải lịch hẹn theo ngày: $e');
+      Get.snackbar('Lỗi', 'Không thể tải lịch hẹn cho ngày đã chọn.');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +81,7 @@ class _StaticsState extends State<Statics> {
             Container(
               margin: const EdgeInsets.only(top: 20, left: 20),
               child: const Text(
-                "Hi, Olivia",
+                "Hi, Admin", // Assuming the user is an admin
                 style: TextStyle(
                   color: Color(0xff363636),
                   fontSize: 25,
@@ -71,7 +93,7 @@ class _StaticsState extends State<Statics> {
               margin: const EdgeInsets.only(top: 5, left: 20),
               width: size.width,
               child: const Text(
-                "Welcome Back",
+                "Thống kê",
                 style: TextStyle(
                   color: Color(0xff363636),
                   fontSize: 30,
@@ -80,20 +102,18 @@ class _StaticsState extends State<Statics> {
                 ),
               ),
             ),
-            Container(
-              margin: const EdgeInsets.only(top: 5, left: 20),
-              width: size.width,
-              child: const Text(
-                "Chọn ngày thống kê",
-                style: TextStyle(
-                  color: Color(0xff363636),
-                  fontSize: 20,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Text(
+                _selectedDay != null
+                    ? "Lịch hẹn ngày ${DateFormat('dd-MM-yyyy').format(_selectedDay!)}"
+                    : "Chọn một ngày để xem lịch hẹn",
+                style: const TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Roboto',
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -110,6 +130,7 @@ class _StaticsState extends State<Statics> {
                     _selectedDay = selectedDay;
                     _focusedDay = focusedDay;
                   });
+                  _loadAppointmentsForSelectedDate(selectedDay);
                 },
                 onFormatChanged: (format) {
                   setState(() {
@@ -139,6 +160,54 @@ class _StaticsState extends State<Statics> {
                   ),
                 ),
               ),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Text(
+                "Thống kê ngày ${DateFormat('dd-MM-yyyy').format(_selectedDay!)}",
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Obx(() {
+                if (appointmentsForSelectedDate.isEmpty) {
+                  return const Center(
+                    child: Text("Không có thông kê nào cho ngày này."),
+                  );
+                }
+                return ListView.builder(
+                  itemCount: appointmentsForSelectedDate.length,
+                  itemBuilder: (context, index) {
+                    final appointment = appointmentsForSelectedDate[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 8.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "ID : ${appointment['appointmentId']}",
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text("Bác sĩ ID: ${appointment['doctorId']}"),
+                            Text("Bệnh nhân ID: ${appointment['patientId']}"),
+                            Text(
+                                "Thời gian: ${appointment['appointmentTime']}"),
+                            Text("Trạng thái: ${appointment['state'] ? 'Đã xác nhận' : 'Chờ xác nhận'}"),
+                            Text("Đã khám: ${appointment['medical_examination'] ? 'Rồi' : 'Chưa'}"),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }),
             ),
           ],
         ),

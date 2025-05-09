@@ -1,6 +1,6 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'HomeAmin.dart';
 import 'static.dart';
 
@@ -18,6 +18,8 @@ class _AdminScreenState extends State<AdminScreen> {
     Container(),
     Statics(),
   ];
+
+
 
   @override
   Widget build(BuildContext context) {

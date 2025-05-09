@@ -24,7 +24,7 @@ class AuthController extends GetxController {
   final pendingAppointments = <Map<String, dynamic>>[].obs;
   final getPatientBySchedule=<Map<String, dynamic>>[].obs;
   final appointmentDetails = Rxn<Map<String, dynamic>>(); // Thêm biến này
-
+  final RxList<User> allDoctors = <User>[].obs; // Thêm RxList để quản lý tất cả bác sĩ
   @override
   // void onInit() {
   //   super.onInit();
@@ -291,7 +291,114 @@ class AuthController extends GetxController {
       rethrow; // Để thông báo lỗi hiển thị
     }
   }
+  // Hàm đánh dấu lịch hẹn là đã khám
+  Future<void> markAppointmentAsExamined(String appointmentId) async {
+    try {
+      await _appointmentService.updateMedicalExaminationStatus(appointmentId, true);
+      Get.snackbar(
+        "Thành công",
+        "Đã đánh dấu lịch hẹn là đã khám!",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+      // Sau khi cập nhật, có thể cần tải lại danh sách lịch hẹn
+      fetchScheduleAppointments();
+    } catch (e) {
+      Get.snackbar(
+        "Lỗi",
+        "Không thể đánh dấu lịch hẹn là đã khám: $e",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      rethrow;
+    }
+  }
+  // Hàm để lấy tất cả bác sĩ
+  Future<void> fetchAllDoctors() async {
+    try {
+      final List<User> doctors = await _authService.getAllDoctors();
+      allDoctors.assignAll(doctors);
+    } catch (e) {
+      print("Lỗi khi tải danh sách bác sĩ: $e");
+      Get.snackbar("Lỗi", "Không thể tải danh sách bác sĩ.");
+    }
+  }
+// Hàm để cập nhật SpecialtyId cho bác sĩ
+  Future<void> updateDoctorSpecialty(String doctorId, String specialtyId) async {
+    try {
+      await _authService.updateDoctorSpecialty(doctorId, specialtyId);
+      Get.snackbar(
+        "Thành công",
+        "Đã cập nhật chuyên khoa cho bác sĩ!",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+      // Có thể thêm logic để tải lại thông tin bác sĩ nếu cần
+    } catch (e) {
+      Get.snackbar(
+        "Lỗi",
+        "Không thể cập nhật chuyên khoa cho bác sĩ: $e",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      // Xử lý lỗi nếu cần
+    }
+  }
+  // Hàm để xóa user theo UID
+  Future<void> deleteUserByUid(String uid) async {
+    try {
+      await _authService.deleteUser(uid);
+      Get.snackbar(
+        "Thành công",
+        "Đã xóa người dùng thành công!",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+      // Có thể thêm logic để cập nhật lại danh sách người dùng nếu cần
+    } catch (e) {
+      Get.snackbar(
+        "Lỗi",
+        "Không thể xóa người dùng: $e",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      // Xử lý lỗi nếu cần
+    }
+  }
+  //lưu danh sách thông kê đợc chọn theo ngày
+  final RxList<Map<String, dynamic>> appointmentsByDate = <Map<String, dynamic>>[].obs;
 
-
+  Future<void> fetchAppointmentsForSelectedDate(DateTime date) async {
+    try {
+      final List<Map<String, dynamic>> appointments = await _appointmentService.getAppointmentsByDate(date);
+      appointmentsByDate.assignAll(appointments);
+    } catch (e) {
+      print('Lỗi khi tải lịch hẹn theo ngày: $e');
+      Get.snackbar('Lỗi', 'Không thể tải lịch hẹn cho ngày đã chọn.');
+    }
+  }
+  Future<void> updateUserProfile({
+    required String uid,
+    String? newFullName,
+    String? newEmail,
+    String? newPhoneNumber,
+  }) async {
+    try {
+      await _authService.updateUser(
+        uid,
+        fullName: newFullName,
+        email: newEmail,
+        phoneNumber: newPhoneNumber,
+      );
+      Get.snackbar("Thành công", "Thông tin người dùng đã được cập nhật!",
+          backgroundColor: Colors.green, colorText: Colors.white);
+      // Optionally, you might want to refresh the user's data
+      // await fetchUserByUid(uid);
+    } catch (e) {
+      Get.snackbar("Lỗi", "Không thể cập nhật thông tin người dùng: $e",
+          backgroundColor: Colors.redAccent, colorText: Colors.white);
+    }
+  }
 }
+
 

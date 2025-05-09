@@ -43,6 +43,12 @@ class AppointmentService {
     await _appointmentRepository.deleteAppointment(appointmentId);
   }
 
-
+  Future<void> updateMedicalExaminationStatus(String appointmentId, bool isExamined) async {
+    await _appointmentRepository.updateMedicalExaminationStatus(appointmentId, isExamined);
+  }
+  // Hàm lấy tất cả appointment theo ngày được chọn
+  Future<List<Map<String, dynamic>>> getAppointmentsByDate(DateTime selectedDate) async {
+    return await _appointmentRepository.fetchAppointmentsByDate(selectedDate);
+  }
 
 }

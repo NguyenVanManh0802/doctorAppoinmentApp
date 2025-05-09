@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../controller/SpecialtyController.dart';
 import '../../controller/authController.dart';
+import '../../widget/ChangeInfoScreen.dart';
 import 'CategoryDisease.dart';
 import '../auth/login.dart';
 
@@ -44,9 +45,14 @@ class _HomepageState extends State<Homepage> {
           details.globalPosition.dy,
         ).shift(const Offset(0, -5)),
         items: [
-          const PopupMenuItem<String>(
+          PopupMenuItem<String>(
             value: 'change_info',
-            child: Text('Đổi thông tin'),
+            child: const Text('Đổi thông tin'),
+            onTap: () {
+              Future.delayed(Duration.zero, () {
+                Get.to(() => const ChangeInfoScreen());
+              });
+            },
           ),
           const PopupMenuItem<String>(
             value: 'change_password',

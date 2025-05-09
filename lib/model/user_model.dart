@@ -4,7 +4,7 @@ class User {
   final String email;
   final String password;
   final String phoneNumber;
-  final String SpecialtyId;
+  String SpecialtyId="";
   final String role; // Ví dụ: 'patient', 'doctor', 'admin'
   final DateTime? createdAt;
 
@@ -15,7 +15,7 @@ class User {
     required this.password,
     required this.phoneNumber,
     required this.role,
-    required this.SpecialtyId,
+    this.SpecialtyId="",
     this.createdAt,
   });
 
@@ -36,6 +36,7 @@ class User {
   // Method để chuyển User object thành Map để lưu trữ (ví dụ: lên Firestore)
   Map<String, dynamic> toMap() {
     return {
+      'uid':uid,
       'fullName': fullName,
       'email': email,
       'phoneNumber': phoneNumber,

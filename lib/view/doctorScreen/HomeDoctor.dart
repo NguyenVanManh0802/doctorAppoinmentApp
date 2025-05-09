@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/authController.dart';
 import '../../model/user_model.dart';
+import '../../widget/ChangeInfoScreen.dart';
 import '../auth/login.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import for DocumentSnapshot
 
 class Homedoctor extends StatefulWidget {
   const Homedoctor({super.key});
-
   @override
   State<Homedoctor> createState() => _HomedoctorState();
 }
@@ -41,9 +41,14 @@ class _HomedoctorState extends State<Homedoctor> {
           details.globalPosition.dy,
         ).shift(const Offset(0, -5)),
         items: [
-          const PopupMenuItem<String>(
+          PopupMenuItem<String>(
             value: 'change_info',
-            child: Text('Đổi thông tin'),
+            child: const Text('Đổi thông tin'),
+            onTap: () {
+              Future.delayed(Duration.zero, () {
+                Get.to(() => const ChangeInfoScreen());
+              });
+            },
           ),
           const PopupMenuItem<String>(
             value: 'change_password',

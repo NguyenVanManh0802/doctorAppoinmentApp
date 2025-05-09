@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/Appointment.dart';
+import 'package:intl/intl.dart';
 
 class AppointmentRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -110,4 +111,41 @@ class AppointmentRepository {
     }
   }
 
+// Hàm cập nhật trạng thái đã khám
+  Future<void> updateMedicalExaminationStatus(String appointmentId, bool isExamined) async {
+    try {
+      await _firestore.collection(appointmentsCollection).doc(appointmentId).update({'medical_examination': isExamined});
+      print('Medical examination status updated to $isExamined for ID: $appointmentId');
+    } catch (e) {
+      print('Error updating medical examination status: $e');
+      rethrow;
+    }
+  }
+
+  // Hàm lấy tất cả appointment theo ngày được chọn
+  Future<List<Map<String, dynamic>>> fetchAppointmentsByDate(DateTime selectedDate) async {
+    try {
+      final String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+      final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+          .collection(appointmentsCollection)
+          .where('appointmentDate', isEqualTo: formattedDate)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'appointmentId': doc.id,
+          'doctorId': data['doctorId'],
+          'patientId': data['patientId'],
+          'appointmentDate': data['appointmentDate'],
+          'appointmentTime': data['appointmentTime'],
+          'state': data['state'],
+          'medical_examination': data['medical_examination'],
+        };
+      }).toList();
+    } catch (e) {
+      print('Lỗi khi tải lịch hẹn theo ngày từ Repository: $e');
+      return [];
+    }
+  }
 }
